@@ -1,0 +1,31 @@
+extends layout
+
+block content
+  h1= title
+  p This page gives some basic information about the APIs available on this server.
+
+  each api in apiDefination
+    span(style={'font-size': '14pt', 'font-weight': 'bold'})= api.name
+    span(style={'font-size': '12pt'})= '  (version ' + api.version + ')'
+    div(style={'padding-left': '1em', 'font-size': '13pt'})= api.description
+    div(style={'padding-left': '1em', 'font-size': '13pt', 'font-weight': 'bold'}) Methods
+    each method, methodName in api.methods
+      div(style={'padding-left': '2em', 'font-size': '13pt', 'font-weight': 'bold'})= methodName
+      div(style={'padding-left': '3em'})= method.description
+      b(style={'padding-left': '3em'}) Parameters
+      br
+      each param, paramName in method.params
+        span(style={display: 'inline-block', width: '8em', 'padding-left': '4em'})= paramName
+        span(style={display: 'inline-block', width: '5em'})= param[0]
+        span= param[1]
+        br
+      br
+    div(style={'padding-left': '1em', 'font-size': '13pt', 'font-weight': 'bold'}) Properties
+    each property, propertyName in api.properties
+      span(style={'padding-left': '2em', 'font-size': '13pt', 'font-weight': 'bold'})
+        a(href=api.version + '/' + propertyName)= propertyName
+      if !property.setter
+        span   (read only)
+      br
+      div(style={'padding-left': '3em'})= property.description
+      br
