@@ -22,6 +22,12 @@ router.get('/', function (req, res) {
   }
 })
 
+//TODO: I'm trying to make the server and client code as identical as possible
+// but this is the best way I've come up with so far for enabling only the API
+// functions that are relevent to each mode of operation.  I'm sure there's a
+// better solution.
+apis.clientMode('test');
+
 if (apis.apiDefination) {
   for (let apiIndex in apis.apiDefination) {
     console.log(apiIndex);
