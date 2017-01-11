@@ -1,18 +1,57 @@
 #!/usr/bin/env node
+"use strict"
 
 /**
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('server-agent:server');
+var app = require('../lib/app');
+var debug = require('debug')('client:server');
 var http = require('http');
+
+// view engine setup
+app.set('views', 'views');
+app.set('view engine', 'jade');
+
+// index (web root) handler
+var index = require('../routes/index');
+app.use('/', index);
+
+// Load apis into their own name space
+var api = require('../routes/api');
+app.use('/api', api);
+
+// Add the APIs we will be presenting.  I need to get better at naming objects.
+var seamlesssession2Init = require('seamlesssession2');
+//var seamlesssession2 = new seamlesssession2Init(seamlesssession2Init.MODE_SESSION);
+//var ssSession = new seamlesssession2Init.session();
+//console.log(seamlesssession2Init)
+var ssSession = new seamlesssession2Init.session();
+api.add(ssSession);
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '3001');
 app.set('port', port);
 
 /**
@@ -87,4 +126,7 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
+
+  console.log('About to try to register a sesson...');
+  ssSession.registerSession('SeSsIoNuUiD', 'shaun.maher');
 }
