@@ -1,5 +1,6 @@
 "use strict"
 var express = require('express');
+const WebSocket = require('ws');
 var router = express.Router();
 
 //TODO: make this dynamic based on the files available
@@ -30,6 +31,44 @@ router.get('/', (function (req, res) {
 router.addApi = function(object) {
   this.apis.push(object);
   this.updateLoadedApis();
+}
+
+router.listening = function(server) {
+  console.log("listening!");
+
+  // The following is to set up listening on a WebSocket for API calls.
+  if (this.apis) {
+    for (let apiIndex in this.apis) {
+      let apiDefination = this.apis[apiIndex].apiDefination;
+      console.log(apiDefination);
+      let fullUri = '/api/' + apiDefination.name + '/' + apiDefination.version + '/';
+      if ((apiDefination.wss) || (apiDefination.wss == null)) {
+        console.log("Going to set up WebSocket.Server for " + fullUri);
+        apiDefination.wss = new WebSocket.Server({
+          server: server,
+          path: fullUri
+        });
+        apiDefination.wss.on('connection', function connection(ws) {
+          console.log("wss.connection");
+          apiDefination.wssEvents.connection[1].apply(apiDefination.wssEvents.connection[0], [ws]);
+
+          ws.on('message', function incoming(message) {
+            console.log("wss.message");
+            if (apiDefination.wssEvents.message) {
+              apiDefination.wssEvents.message[1].apply(apiDefination.wssEvents.message[0], [message, ws]);
+            }
+          });
+
+          ws.on('error', function incoming(error) {
+            console.log("wss.error");
+            if (apiDefination.wssEvents.error) {
+              apiDefination.wssEvents.error[1].apply(apiDefination.wssEvents.error[0], [message, ws]);
+            }
+          });
+        });
+      }
+    }
+  }
 }
 
 router.updateLoadedApis = function() {

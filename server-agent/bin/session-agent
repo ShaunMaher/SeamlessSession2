@@ -8,6 +8,8 @@
 var app = require('../lib/app');
 var debug = require('debug')('client:server');
 var http = require('http');
+const url = require('url');
+const WebSocket = require('ws');
 
 // view engine setup
 app.set('views', 'views');
@@ -26,7 +28,7 @@ var seamlesssession2Init = require('seamlesssession2');
 //var seamlesssession2 = new seamlesssession2Init(seamlesssession2Init.MODE_SESSION);
 //var ssSession = new seamlesssession2Init.session();
 //console.log(seamlesssession2Init)
-var ssSession = new seamlesssession2Init.session();
+var ssSession = new seamlesssession2Init.session("ws://127.0.0.1:3002/api/seamlesssession2/1.0.0/");
 api.add(ssSession);
 
 // catch 404 and forward to error handler
@@ -59,6 +61,17 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', function connection(ws) {
+  const location = url.parse(ws.upgradeReq.url, true);
+
+  ws.on('message', function incoming(message) {
+    console.log('ws.onMessage: received:', message);
+  });
+
+  ws.send('hello');
+});
 
 /**
  * Listen on provided port, on all network interfaces.
