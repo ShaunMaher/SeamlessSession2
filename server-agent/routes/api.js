@@ -48,7 +48,7 @@ router.listening = function(server) {
           server: server,
           path: fullUri
         });
-        apiDefination.wss.on('connection', function connection(ws) {
+        apiDefination.wss.on('connection', (function connection(ws) {
           console.log("wss.connection");
           apiDefination.wssEvents.connection[1].apply(apiDefination.wssEvents.connection[0], [ws]);
 
@@ -65,7 +65,7 @@ router.listening = function(server) {
               apiDefination.wssEvents.error[1].apply(apiDefination.wssEvents.error[0], [message, ws]);
             }
           });
-        });
+        }).bind(apiDefination));
       }
     }
   }
