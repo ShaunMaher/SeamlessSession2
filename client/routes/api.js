@@ -40,7 +40,12 @@ router.listening = function(server) {
   if (this.apis) {
     for (let apiIndex in this.apis) {
       let apiDefination = this.apis[apiIndex].apiDefination;
-      console.log(apiDefination);
+      // Execute the "listening" function/event for this api
+      if (apiDefination.events.listening) {
+        apiDefination.events.listening[1].apply(apiDefination.events.listening[0], server);
+      }
+
+      //console.log(apiDefination);
       let fullUri = '/api/' + apiDefination.name + '/' + apiDefination.version + '/';
       if ((apiDefination.wss) || (apiDefination.wss == null)) {
         console.log("Going to set up WebSocket.Server for " + fullUri);
@@ -50,29 +55,29 @@ router.listening = function(server) {
         });
         apiDefination.wss.on('connection', (function connection(ws) {
           console.log("wss.connection");
-          apiDefination.wssEvents.connection[1].apply(apiDefination.wssEvents.connection[0], [ws]);
+          apiDefination.events.wssConnection[1].apply(apiDefination.events.wssConnection[0], [ws]);
 
           ws.on('message', function incoming(message) {
             console.log("wss.message");
-            if (apiDefination.wssEvents.message) {
-              apiDefination.wssEvents.message[1].apply(apiDefination.wssEvents.message[0], [message, ws]);
+            if (apiDefination.events.wssMessage) {
+              apiDefination.events.wssMessage[1].apply(apiDefination.events.wssMessage[0], [message, ws]);
             }
           });
 
           ws.on('error', function incoming(error) {
             console.log("wss.error");
-            if (apiDefination.wssEvents.error) {
-              apiDefination.wssEvents.error[1].apply(apiDefination.wssEvents.error[0], [message, ws]);
+            if (apiDefination.events.wssError) {
+              apiDefination.events.wssError[1].apply(apiDefination.events.wssError[0], [message, ws]);
             }
           });
-        }).bind(apiDefination);
+        }).bind(apiDefination));
       }
     }
   }
 }
 
 router.updateLoadedApis = function() {
-  console.log(this.apis);
+  //console.log(this.apis);
   if (this.apis) {
     for (let apiIndex in this.apis) {
       //console.log(apiIndex);

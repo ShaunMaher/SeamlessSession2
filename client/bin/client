@@ -8,6 +8,8 @@
 var app = require('../lib/app');
 var debug = require('debug')('client:server');
 var http = require('http');
+const url = require('url');
+const WebSocket = require('ws');
 
 // view engine setup
 app.set('views', 'views');
@@ -23,8 +25,8 @@ app.use('/api', api);
 
 // Add the APIs we will be presenting.  I need to get better at naming objects.
 var seamlesssession2Init = require('seamlesssession2');
-var seamlesssession2 = new seamlesssession2Init(seamlesssession2Init.MODE_SESSIONHOST);
-api.add(seamlesssession2);
+var ssClient = new seamlesssession2Init.client("ws://127.0.0.1:3002/api/sessionhost/1.0.0/");
+api.add(ssClient);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -56,6 +58,17 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', function connection(ws) {
+  const location = url.parse(ws.upgradeReq.url, true);
+
+  ws.on('message', function incoming(message) {
+    console.log('ws.onMessage: received:', message);
+  });
+
+  ws.send('hello');
+});
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -63,7 +76,7 @@ var server = http.createServer(app);
 
 server.listen(port);
 server.on('error', onError);
-server.on('listening', onListening);
+server.on('listening', (onListening).bind(api));
 
 /**
  * Normalize a port into a number, string, or false.
@@ -117,10 +130,20 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
-}
+ function onListening() {
+   var addr = server.address();
+   var bind = typeof addr === 'string'
+     ? 'pipe ' + addr
+     : 'port ' + addr.port;
+   console.log('Listening on ' + bind);
+
+   api.listening(server);
+
+   console.log('About to try to register a client...');
+   ssClient.registerClient(null, 'SeSsIoNuUiD', 'shaun.maher', 'http://127.0.0.1' + ':3002' + '/api/session/' + this.apis[0].version);
+ }
+
+ function sessionKeepAlive() {
+   console.log('About to try to register a sesson...');
+   ssClient.registerClient(null, 'SeSsIoNuUiD', 'shaun.maher', 'http://127.0.0.1' + ':3002' + '/api/session/' + this.apis[0].version);
+ }
